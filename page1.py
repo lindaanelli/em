@@ -1,3 +1,8 @@
+"""
+a. il codice funziona, riesce a scrapare tutti i campi -> unico problema: si "interrompe" con un errore (dopo aver
+acquisito correttamente ogni campo)
+"""
+
 import scrapy
 
 
