@@ -10,10 +10,10 @@ class ScholarItem(scrapy.Item):
 class CitSpider(scrapy.Spider):
 
     name = "page2"
-    domain = 'https://scholar.google.it/scholar?oi=bibs&hl=it'
+    domain = 'https://scholar.google.com/scholar?oi=bibs&hl=en'
     cites = '10972803237645083033'
     start_urls = [domain + '&cites={}'.format(cites)]
-    pagesize = 10
+
 
     def parse(self, response):
 
@@ -28,3 +28,8 @@ class CitSpider(scrapy.Spider):
             item['Authors'] = paper_authors
             item['Description'] = paper_description
             yield item
+
+        next_page = response.xpath('//span[@class="gs_ico gs_ico_nav_next"]/../@href').extract_first()
+        if next_page is not None:
+            next_page = response.urljoin(next_page)
+            yield scrapy.Request(next_page, callback=self.parse)
