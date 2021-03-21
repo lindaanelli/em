@@ -13,6 +13,7 @@ class PButton(scrapy.Spider):
                                   callback=self.parse)
 
     def parse(self, response):
+
         driver = webdriver.Chrome()
         driver.get(response.url)
         sel = scrapy.Selector(text=driver.page_source)
