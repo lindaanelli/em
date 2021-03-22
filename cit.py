@@ -24,7 +24,7 @@ class PButton(scrapy.Spider):
             links = sel.css("div.gs_md_bdy")
             for link in links:
                 yield {
-                    "Title": link.css("div.gs_citr::text").get()
+                    "Title": link.css("div.gs_citr::text").extract()
                 }
 
         driver.quit()
