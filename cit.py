@@ -10,7 +10,7 @@ class PButton(scrapy.Spider):
 
     def start_requests(self):
         yield Request("https://scholar.google.com/scholar?oi=bibs&hl=en&cites=10972803237645083033",
-                                  callback=self.parse)
+                      callback=self.parse)
 
     def parse(self, response):
 

@@ -67,5 +67,6 @@ class Page1Spider(scrapy.Spider):
             yield item
 
         Page1Spider.start += Page1Spider.page_size
-        next_page = Page1Spider.start_urls[0] + "&cstart={}&pagesize={}".format(Page1Spider.start, Page1Spider.page_size)
+        next_page = Page1Spider.start_urls[0] + "&cstart={}&pagesize={}".format(Page1Spider.start,
+                                                                                Page1Spider.page_size)
         yield scrapy.Request(next_page, callback=self.parse1)
