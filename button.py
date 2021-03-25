@@ -16,7 +16,7 @@ class Citation(scrapy.Spider):
     def parse(self, response):
         # for name in response.css('div#gs_citt'):
         name_title = response.css("div.gs_citr::text").extract()
-        name_format = response.css("th.gs_cith")
+        name_format = response.css("th.gs_cith::text").extract()
 
         item = CitationItem()
         item["Title"] = name_title
