@@ -1,42 +1,37 @@
 from selenium import webdriver
-import scrapy
-from scrapy.http import Request
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 
 
-class CitationItem(scrapy.Field):
-    Title = scrapy.Field()
-    Format = scrapy.Field
+text_list = []
+temp_list = []
+driver = webdriver.Chrome()
+driver.get("https://scholar.google.com/scholar?oi=bibs&hl=en&cites=10972803237645083033")
+
+for x in driver.find_elements_by_css_selector("a.gs_or_cit.gs_nph"):
+    WebDriverWait(driver, 10)
+    x.click()
+
+    search = WebDriverWait(driver, 20).until(
+        EC.visibility_of_all_elements_located((By.ID, "gs_citt")))
+
+    for element in search:
+        title = element.find_elements_by_css_selector('div.gs_citr')
+        print(title)
+
+        for t in title:
+            t2 = t.text
+            print(t2) # temp_list.append(t2)
+        #text_list.append(temp_list)
+        #temp_list.clear()
+
+    close = driver.find_element_by_css_selector("span.gs_ico")
+    driver.implicitly_wait(10)
+    ActionChains(driver).move_to_element(close).click(close).perform()
 
 
-class PButton(scrapy.Spider):
-    name = "PButton"
-    allowed_domains = ["google.com"]
+driver.quit()
 
-    def start_requests(self):
-        yield Request("https://scholar.google.com/scholar?oi=bibs&hl=en&cites=10972803237645083033",
-                      callback=self.parse)
-
-    def parse(self, response):
-
-        driver = webdriver.Chrome()
-        driver.get(response.url)
-        for x in driver.find_elements_by_css_selector("a.gs_or_cit.gs_nph"):
-            WebDriverWait(driver, 10)
-            x.click()
-            for name in response.css('div#gs_citt'):
-                name_title = name.css("div.gs_citr::text").extract()
-                name_format = name.css("th.gs_cith::text").extract()
-
-                item = CitationItem()
-                item["Title"] = name_title
-                item["Format"] = name_format
-                yield item
-            close = driver.find_element_by_css_selector("span.gs_ico")
-            driver.implicitly_wait(10)
-            ActionChains(driver).move_to_element(close).click(close).perform()
-
-        driver.quit()
+print(text_list)
