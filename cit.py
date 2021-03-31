@@ -40,6 +40,7 @@ for x in driver.find_elements_by_css_selector("a.gs_or_cit.gs_nph"):
 driver.quit()
 print(text_list)
 
+
 # TODO: go to page 2
 # TODO: BibTeX
 # TODO: save list as json
