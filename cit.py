@@ -7,7 +7,11 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 text_list = []
 temp_list = []
-driver = webdriver.Chrome()
+
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')
+driver = webdriver.Chrome(options=options)
+
 driver.get("https://scholar.google.com/scholar?oi=bibs&hl=en&cites=10972803237645083033")
 
 for x in driver.find_elements_by_css_selector("a.gs_or_cit.gs_nph"):
