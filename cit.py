@@ -6,8 +6,14 @@ from selenium.webdriver.common.action_chains import ActionChains
 
 
 text_list = []
-temp_list = []
-driver = webdriver.Chrome()
+temp = []
+
+# options = webdriver.Chrome()
+
+options = webdriver.ChromeOptions()
+options.add_argument('--headless')
+driver = webdriver.Chrome(options=options)
+
 driver.get("https://scholar.google.com/scholar?oi=bibs&hl=en&cites=10972803237645083033")
 
 for x in driver.find_elements_by_css_selector("a.gs_or_cit.gs_nph"):
@@ -19,13 +25,12 @@ for x in driver.find_elements_by_css_selector("a.gs_or_cit.gs_nph"):
 
     for element in search:
         title = element.find_elements_by_css_selector('div.gs_citr')
-        print(title)
 
         for t in title:
             t2 = t.text
-            print(t2) # temp_list.append(t2)
-        #text_list.append(temp_list)
-        #temp_list.clear()
+            temp.append(str(t2))
+        text_list.append(temp.copy())
+        temp.clear()
 
     close = driver.find_element_by_css_selector("span.gs_ico")
     driver.implicitly_wait(10)
@@ -33,5 +38,8 @@ for x in driver.find_elements_by_css_selector("a.gs_or_cit.gs_nph"):
 
 
 driver.quit()
-
 print(text_list)
+
+# TODO: go to page 2
+# TODO: BibTeX
+# TODO: save list as json
