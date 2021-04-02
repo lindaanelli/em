@@ -9,6 +9,7 @@ link_to_click = []
 text_list = []
 temp = []
 bib = []
+final = []
 start = 0
 i = 0
 
@@ -56,11 +57,15 @@ for link in link_to_click:
     content = content.text
     bib.append([content])
 
+for pub in bib:
+    for element in pub:
+        stripped_line = element.replace('\n', '')
+        final.append([stripped_line])
+
 
 driver.quit()
 print(bib)
 
 
 # TODO: go to page 2
-# TODO: BibTeX
 # TODO: save list as json
