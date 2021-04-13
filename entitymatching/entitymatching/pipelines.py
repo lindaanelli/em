@@ -18,8 +18,7 @@ class EntitymatchingPipeline:
             27017
         )
         db = self.conn["em_test2"]
-        self.collection = db["authors"]
-
+        self.collection = db["authors5"]
 
     def process_item(self, item, spider):
         self.collection.insert(dict(item))

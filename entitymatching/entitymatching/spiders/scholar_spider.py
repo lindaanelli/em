@@ -1,5 +1,8 @@
 import scrapy
-from ..items import EntitymatchingItem
+from ..items import MainItem
+from ..items import PublicationItem
+from ..items import BibTeXItem
+from get_bibtex_link import Bibtex
 
 
 class ScholarSpider(scrapy.Spider):
@@ -8,14 +11,17 @@ class ScholarSpider(scrapy.Spider):
     start = 0
     urls = "https://scholar.google.it/citations?user=EoCl8TAAAAAJ&hl=it"
     start_urls = [urls + "&cstart={}&pagesize={}".format(start, page_size)]
+    bib_link = []
+    page2_links = []
 
-    def parse(self, response):
-        item0 = EntitymatchingItem()
+    def parse(self, response):  # Scraping author's info
+        item0 = MainItem()
         name = response.css("title::text").get()
         name = str(name)
         if name.endswith("- Google Scholar"):
             name = name[:-16]
-        item0["Author"] = ScholarSpider.urls + ", " + name
+        item0["Author"] = name
+        item0["Link"] = ScholarSpider.urls
         yield item0
 
         info_total_citations = response.css("td.gsc_rsb_std::text").extract()[0]
@@ -25,19 +31,28 @@ class ScholarSpider(scrapy.Spider):
         str(info_h_index)
         str(info_i10_index)
 
-        item1 = EntitymatchingItem()
+        item1 = MainItem()
         item1["Total_Citations"] = info_total_citations
         item1["h_index"] = info_h_index
         item1["i10_index"] = info_i10_index
         yield item1
         yield scrapy.Request(ScholarSpider.urls, callback=self.parse1)
 
-    def parse1(self, response):
+    def parse1(self, response): # Scraping publication info
 
         for paper in response.css("tr.gsc_a_tr"):
 
             paper_title = paper.css("a::text").extract_first()
-            paper_authors = paper.css("div.gs_gray::text").extract()[0]
+            try:
+                paper_authors = paper.css("div.gs_gray::text").extract()[0]
+            except IndexError: # When an index error occurs it means that the web page has no more papers. It's time to scrape BibTeX
+
+                for citation in ScholarSpider.page2_links:
+                    bib = Bibtex(citation)
+                    ScholarSpider.bib_link = bib.cit()
+
+                for url in ScholarSpider.bib_link:
+                    yield scrapy.Request(url, callback=self.parse3)
             try:
                 paper_journal = paper.css("div.gs_gray::text").extract()[1]
             except IndexError:
@@ -45,17 +60,24 @@ class ScholarSpider(scrapy.Spider):
             paper_year = paper.css("span.gsc_a_h.gsc_a_hc.gs_ibl::text").get()
             paper_ncit = paper.css("a.gsc_a_ac.gs_ibl::text").extract()
             if not paper_ncit:
-                paper_ncit = 0
+                paper_ncit = [0]
+            ref = paper.css("td.gsc_a_c a.gsc_a_ac.gs_ibl::attr(href)").get()
+            ScholarSpider.page2_links.append(str(ref))
 
-            item = EntitymatchingItem()
+            item = PublicationItem()
             item['Title'] = paper_title
             item['Authors'] = paper_authors
             item['Journal'] = paper_journal
             item['Year'] = paper_year
-            item['Citations'] = paper_ncit
+            item['N_Citations'] = paper_ncit[0]
             yield item
 
         ScholarSpider.start += ScholarSpider.page_size
         next_page = ScholarSpider.start_urls[0] + "&cstart={}&pagesize={}".format(ScholarSpider.start,
                                                                                   ScholarSpider.page_size)
         yield scrapy.Request(next_page, callback=self.parse1)
+
+    def parse3(self, response):
+        item = BibTeXItem()
+        item["Type"] = response.text
+        yield item
