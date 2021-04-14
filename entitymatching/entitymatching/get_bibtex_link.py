@@ -1,8 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import InvalidArgumentException, TimeoutException
 
 
 class Bibtex:
@@ -21,8 +22,8 @@ class Bibtex:
         # driver = webdriver.Chrome(options=options)
 
         link_to_click = []
-        text_list = []
-        temp = []
+        # text_list = []
+        # temp = []
         start = 0
         i = 0
 
@@ -42,22 +43,22 @@ class Bibtex:
                 WebDriverWait(driver, 10)
                 x.click()
 
-                search = WebDriverWait(driver, 20).until(
-                    EC.visibility_of_all_elements_located((By.ID, "gs_citt")))
+                WebDriverWait(driver, 20).until(ec.visibility_of_all_elements_located((By.ID, "gs_citt")))
 
-                for element in search:
-                    title = element.find_elements_by_css_selector('div.gs_citr')
-                    types = element.find_elements_by_css_selector("th.gs_cith")
 
-                    for t in title:
-                        t2 = t.text
-                        temp.append([str(t2)])
+                # for element in search:
+                #   title = element.find_elements_by_css_selector('div.gs_citr')
+                #    types = element.find_elements_by_css_selector("th.gs_cith")
 
-                    for typ in types:
-                        typ2 = typ.text
-                        temp.append([str(typ2)])
-                    text_list.append(temp.copy())
-                    temp.clear()
+                #    for t in title:
+                #       t2 = t.text
+                #        temp.append([str(t2)])
+
+                #   for typ in types:
+                #        typ2 = typ.text
+                #        temp.append([str(typ2)])
+                #    text_list.append(temp.copy())
+                #    temp.clear()
 
                 bibtex = driver.find_elements_by_css_selector("a.gs_citi")
                 link_to_click.append(bibtex[0].get_attribute("href"))
@@ -69,6 +70,9 @@ class Bibtex:
             start = start + 10
             i = 1 + i
 
+        driver.stop_client()
+        driver.close()
         driver.quit()
+        print(link_to_click)
 
         return link_to_click

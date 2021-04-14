@@ -1,15 +1,15 @@
 import scrapy
+from ..get_bibtex_link import Bibtex
 from ..items import MainItem
 from ..items import PublicationItem
 from ..items import BibTeXItem
-from get_bibtex_link import Bibtex
 
 
 class ScholarSpider(scrapy.Spider):
     name = "scholar_spider"
     page_size = 20
     start = 0
-    urls = "https://scholar.google.it/citations?user=EoCl8TAAAAAJ&hl=it"
+    urls = "https://scholar.google.it/citations?hl=it&user=GlGtfn8AAAAJ"
     start_urls = [urls + "&cstart={}&pagesize={}".format(start, page_size)]
     bib_link = []
     page2_links = []
@@ -47,7 +47,9 @@ class ScholarSpider(scrapy.Spider):
                 paper_authors = paper.css("div.gs_gray::text").extract()[0]
             except IndexError: # When an index error occurs it means that the web page has no more papers. It's time to scrape BibTeX
 
-                for citation in ScholarSpider.page2_links:
+                page2_clean = [string for string in ScholarSpider.page2_links if string != ""]
+
+                for citation in page2_clean:
                     bib = Bibtex(citation)
                     ScholarSpider.bib_link = bib.cit()
 
