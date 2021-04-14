@@ -48,13 +48,16 @@ class ScholarSpider(scrapy.Spider):
             except IndexError: # When an index error occurs it means that the web page has no more papers. It's time to scrape BibTeX
 
                 page2_clean = [string for string in ScholarSpider.page2_links if string != ""]
+                bib_link_total = []
 
                 for citation in page2_clean:
                     bib = Bibtex(citation)
                     ScholarSpider.bib_link = bib.cit()
+                    bib_link_total.append(ScholarSpider.bib_link)
 
-                for url in ScholarSpider.bib_link:
-                    yield scrapy.Request(url, callback=self.parse3)
+                for lin in bib_link_total:
+                    for url in lin:
+                        yield scrapy.Request(url, callback=self.parse3)
             try:
                 paper_journal = paper.css("div.gs_gray::text").extract()[1]
             except IndexError:

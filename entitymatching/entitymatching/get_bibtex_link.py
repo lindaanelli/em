@@ -14,12 +14,12 @@ class Bibtex:
 
     def cit(self):
 
-        webdriver.Chrome()
-        driver = webdriver.Chrome()
+        # webdriver.Chrome()
+        # driver = webdriver.Chrome()
 
-        # options = webdriver.ChromeOptions()
-        # options.add_argument('--headless')
-        # driver = webdriver.Chrome(options=options)
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        driver = webdriver.Chrome(options=options)
 
         link_to_click = []
         # text_list = []
