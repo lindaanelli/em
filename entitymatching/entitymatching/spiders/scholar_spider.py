@@ -22,7 +22,7 @@ class ScholarSpider(scrapy.Spider):
             name = name[:-16]
         item0["Author"] = name
         item0["Link"] = ScholarSpider.urls
-        yield item0
+
 
         info_total_citations = response.css("td.gsc_rsb_std::text").extract()[0]
         info_h_index = response.css("td.gsc_rsb_std::text").extract()[2]
@@ -31,11 +31,10 @@ class ScholarSpider(scrapy.Spider):
         str(info_h_index)
         str(info_i10_index)
 
-        item1 = MainItem()
-        item1["Total_Citations"] = info_total_citations
-        item1["h_index"] = info_h_index
-        item1["i10_index"] = info_i10_index
-        yield item1
+        item0["Total_Citations"] = info_total_citations
+        item0["h_index"] = info_h_index
+        item0["i10_index"] = info_i10_index
+        yield item0
         yield scrapy.Request(ScholarSpider.urls, callback=self.parse1)
 
     def parse1(self, response): # Scraping publication info
