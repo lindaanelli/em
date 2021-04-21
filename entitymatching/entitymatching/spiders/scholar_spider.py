@@ -10,6 +10,7 @@ class ScholarSpider(scrapy.Spider):
     page_size = 20
     start = 0
     urls = "https://scholar.google.it/citations?hl=it&user=GlGtfn8AAAAJ"
+    a_id = hash(urls)
     start_urls = [urls + "&cstart={}&pagesize={}".format(start, page_size)]
     bib_link = []
     page2_links = []
@@ -22,6 +23,7 @@ class ScholarSpider(scrapy.Spider):
             name = name[:-16]
         item0["Author"] = name
         item0["Link"] = ScholarSpider.urls
+        item0["ID"] = ScholarSpider.a_id
 
 
         info_total_citations = response.css("td.gsc_rsb_std::text").extract()[0]
@@ -74,6 +76,7 @@ class ScholarSpider(scrapy.Spider):
             item['Journal'] = paper_journal
             item['Year'] = paper_year
             item['N_Citations'] = paper_ncit[0]
+            item["ID"] = ScholarSpider.a_id
             yield item
 
         ScholarSpider.start += ScholarSpider.page_size
@@ -84,4 +87,5 @@ class ScholarSpider(scrapy.Spider):
     def parse3(self, response):
         item = BibTeXItem()
         item["Type"] = response.text
+        item["ID"] = ScholarSpider.a_id
         yield item

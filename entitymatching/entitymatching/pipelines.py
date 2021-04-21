@@ -8,6 +8,7 @@
 from itemadapter import ItemAdapter
 
 import pymongo
+import logging
 
 
 class EntitymatchingPipeline:
@@ -17,9 +18,9 @@ class EntitymatchingPipeline:
             "localhost",
             27017
         )
-        db = self.conn["em_test2"]
-        self.collection = db["authors4"]
+        self.db = self.conn["em_test"]
 
     def process_item(self, item, spider):
-        self.collection.insert(dict(item))
+        collection = self.db[type(item).__name__.lower()]
+        logging.info(collection.insert(dict(item)))
         return item
