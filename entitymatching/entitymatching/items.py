@@ -7,7 +7,7 @@ import scrapy
 
 
 class MainItem(scrapy.Item):
-    ID = scrapy.Field()
+    a_ID = scrapy.Field()
     Author = scrapy.Field()
     Link = scrapy.Field()
     Total_Citations = scrapy.Field()
@@ -18,7 +18,8 @@ class MainItem(scrapy.Item):
 
 
 class PublicationItem(scrapy.Item):
-    ID = scrapy.Field()
+    a_ID = scrapy.Field()
+    p_ID = scrapy.Field()
     Title = scrapy.Field()
     Authors = scrapy.Field()
     Journal = scrapy.Field()
@@ -29,7 +30,7 @@ class PublicationItem(scrapy.Item):
 
 
 class BibTeXItem(scrapy.Item):
-    ID = scrapy.Field()
+    p_ID = scrapy.Field()
     Type = scrapy.Field()
     Id = scrapy.Field()
     Bib_Title = scrapy.Field()

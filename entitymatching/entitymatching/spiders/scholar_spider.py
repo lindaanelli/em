@@ -14,6 +14,8 @@ class ScholarSpider(scrapy.Spider):
     start_urls = [urls + "&cstart={}&pagesize={}".format(start, page_size)]
     bib_link = []
     page2_links = []
+    hash_list = []
+    i = 0
 
     def parse(self, response):  # Scraping author's info
         item0 = MainItem()
@@ -23,8 +25,7 @@ class ScholarSpider(scrapy.Spider):
             name = name[:-16]
         item0["Author"] = name
         item0["Link"] = ScholarSpider.urls
-        item0["ID"] = ScholarSpider.a_id
-
+        item0["a_ID"] = ScholarSpider.a_id
 
         info_total_citations = response.css("td.gsc_rsb_std::text").extract()[0]
         info_h_index = response.css("td.gsc_rsb_std::text").extract()[2]
@@ -59,6 +60,7 @@ class ScholarSpider(scrapy.Spider):
                 for lin in bib_link_total:
                     for url in lin:
                         yield scrapy.Request(url, callback=self.parse3)
+                    ScholarSpider.i = ScholarSpider.i + 1
             try:
                 paper_journal = paper.css("div.gs_gray::text").extract()[1]
             except IndexError:
@@ -70,13 +72,18 @@ class ScholarSpider(scrapy.Spider):
             ref = paper.css("td.gsc_a_c a.gsc_a_ac.gs_ibl::attr(href)").get()
             ScholarSpider.page2_links.append(str(ref))
 
+            p_ID = hash(paper_title)
+            ScholarSpider.hash_list.append(p_ID)
+
+
             item = PublicationItem()
             item['Title'] = paper_title
+            item["p_ID"] = p_ID
             item['Authors'] = paper_authors
             item['Journal'] = paper_journal
             item['Year'] = paper_year
             item['N_Citations'] = paper_ncit[0]
-            item["ID"] = ScholarSpider.a_id
+            item["a_ID"] = ScholarSpider.a_id
             yield item
 
         ScholarSpider.start += ScholarSpider.page_size
@@ -87,5 +94,5 @@ class ScholarSpider(scrapy.Spider):
     def parse3(self, response):
         item = BibTeXItem()
         item["Type"] = response.text
-        item["ID"] = ScholarSpider.a_id
+        item["p_ID"] = ScholarSpider.hash_list[ScholarSpider.i]
         yield item
