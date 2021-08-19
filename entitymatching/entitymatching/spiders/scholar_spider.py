@@ -15,6 +15,8 @@ class ScholarSpider(scrapy.Spider):
     bib_link = []
     page2_links = []
     hash_list = []
+    citation_dict = {}
+
     i = 0
 
     def parse(self, response):  # Scraping author's info
@@ -40,26 +42,36 @@ class ScholarSpider(scrapy.Spider):
         yield item0
         yield scrapy.Request(ScholarSpider.urls, callback=self.parse1)
 
-    def parse1(self, response): # Scraping publication info
+    def parse1(self, response):  # Scraping publication info
 
         for paper in response.css("tr.gsc_a_tr"):
 
             paper_title = paper.css("a::text").extract_first()
+            p_ID = hash(paper_title)
+
             try:
                 paper_authors = paper.css("div.gs_gray::text").extract()[0]
-            except IndexError: # When an index error occurs it means that the web page has no more papers. It's time to scrape BibTeX
 
-                page2_clean = [string for string in ScholarSpider.page2_links if string != ""]
+            except IndexError:  # When an index error occurs it means that the web page has no more papers.
+                # It's time to scrape BibTeX
+
                 bib_link_total = []
+                for (citation, paper_id) in ScholarSpider.page2_links:
+                    if citation == "":
+                        continue
+                    citation_bib_link = Bibtex(citation)  # Create object that uses Selenium
+                    c_list = citation_bib_link.get_all_bibtex_links()
+                    bib_link_total.append(c_list)
 
-                for citation in page2_clean:
-                    bib = Bibtex(citation)
-                    ScholarSpider.bib_link = bib.cit()
-                    bib_link_total.append(ScholarSpider.bib_link)
+                    for url in c_list:
+                        ScholarSpider.citation_dict[url] = paper_id
+                        # Could paper id be a list -> abbiamo verificato che anche se bibtex uguale per id
+                        # gli url sono diversi
 
                 for lin in bib_link_total:
                     for url in lin:
-                        yield scrapy.Request(url, callback=self.parse3)
+                        yield scrapy.Request(url, callback=self.parse3,
+                                             meta={'id': ScholarSpider.citation_dict.get(url)})
                     ScholarSpider.i = ScholarSpider.i + 1
             try:
                 paper_journal = paper.css("div.gs_gray::text").extract()[1]
@@ -70,11 +82,9 @@ class ScholarSpider(scrapy.Spider):
             if not paper_ncit:
                 paper_ncit = [0]
             ref = paper.css("td.gsc_a_c a.gsc_a_ac.gs_ibl::attr(href)").get()
-            ScholarSpider.page2_links.append(str(ref))
+            ScholarSpider.page2_links.append((str(ref), p_ID))
 
-            p_ID = hash(paper_title)
-            ScholarSpider.hash_list.append(p_ID)
-
+            # ScholarSpider.hash_list.append(p_ID)
 
             item = PublicationItem()
             item['Title'] = paper_title
@@ -93,6 +103,6 @@ class ScholarSpider(scrapy.Spider):
 
     def parse3(self, response):
         item = BibTeXItem()
+        item["p_ID"] = response.meta.get('id')
         item["Type"] = response.text
-        item["p_ID"] = ScholarSpider.hash_list[ScholarSpider.i]
         yield item

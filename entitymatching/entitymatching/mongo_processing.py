@@ -6,6 +6,7 @@ from bibtexparser.bparser import BibTexParser
 conn = MongoClient("localhost", 27017)
 print("Connected successfully!")
 
+# TODO: verificare che non ci siano duplicati in bib
 
 #   Saving the db. The form is conn.<db name>.
 #   TODO: change it in order to make it change when the scrapy db name changes
@@ -33,20 +34,20 @@ for field in bib:
     bib_ids.append(field["_id"])
 
 
-#   Updating all bibtex articles with the publication that they cite
-minimum = 0
-maximum = 0
-k = 0
-for j in n_of_bibtex_cits:
-    maximum = maximum + n_of_bibtex_cits[j]
-    for i in range(minimum, maximum):
-        test = bibtex_fields.find_one_and_update(
-            {"_id": bib_ids[i]},
-            {"$set": {"p_ID": j}},
-            upsert=True
-        )
-    minimum = minimum + maximum
-    k = k + 1
+# #   Updating all bibtex articles with the publication that they cite
+# minimum = 0
+# maximum = 0
+# k = 0
+# for j in n_of_bibtex_cits:
+#     maximum = maximum + n_of_bibtex_cits[j]
+#     for i in range(minimum, maximum):
+#         test = bibtex_fields.find_one_and_update(
+#             {"_id": bib_ids[i]},
+#             {"$set": {"p_ID": j}},
+#             upsert=True
+#         )
+#     minimum = minimum + maximum
+#     k = k + 1
 
 
 #   Parsing "Type" field in order to make it a BibTex item. Then removing old "Type" field.
@@ -54,16 +55,19 @@ for j in n_of_bibtex_cits:
 try:
     parser = BibTexParser()
     ids = []
+    p_ids = []
     bib = bibtex_fields.find({})
     for field in bib:
         ids.append(field["_id"])
         to_add = field["Type"]
+        p_ids.append(field["p_ID"])
         parsed_bib = parser.parse(to_add).entries
 
     j = 0
     for i in ids:
         bibtex = bibtex_fields.find_one_and_update(
             {"_id": i},
+            {"p_ID": p_ids[i]},
             {"$set": {"BibTex Info": parsed_bib[j]}},
             upsert=True
         )

@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 from bibtexparser.bparser import BibTexParser
 
+
+
 conn = MongoClient("localhost", 27017)
 print("Connected successfully!")
 
@@ -81,6 +83,8 @@ for i in db:
             if o not in db_new:
                 db_new.append(o)
 
+print(bib_new)
+
 bfp = []
 j = 0
 count = 0
@@ -105,6 +109,12 @@ for v in bfp:
     tem.clear()
     a = a + v
 
+x = 0
+for group in bib_titles:
+    group[x]['Pub ID'] = hash(pub_new[x][0])
+    x = x + 1
+
+print(bib_titles)
 
 an = {"ID": author_new[2], "Author": author_new[0], "Url": author_new[1], "Citations": author_new[3],
       "H index": author_new[4], "i10-index": author_new[5], "Publication": []}
@@ -114,10 +124,10 @@ for e in pub_new:
     k = k + 1
     if "Publication" in an:
         an["Publication"].append(
-            {"Author_id": e[1], "Publication_id": e[6], "Title": e[0], "Authors": e[2], "Journal": e[3],
-             "Year": e[4], "BibTex Citations": e[5], "Bib": [bib_titles[k]] if k < len(bib_titles) else []})
+            {"Author_id": e[6], "Publication_id": e[1], "Title": e[0], "Authors": e[2], "Journal": e[3],
+             "Year": e[4], "BibTex Citations": e[5], "Bib": bib_titles[k] if k < len(bib_titles) else []})
 
-collection = final_db["Scholar Author"]
+collection = final_db["Scholar Author 2"]
 
-collection.insert_many(an)
+collection.insert_one(an)
 
