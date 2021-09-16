@@ -41,3 +41,11 @@ class BibTeXItem(scrapy.Item):
     Bib_Year = scrapy.Field()
     Publisher = scrapy.Field()
     pass
+
+
+class CitationItem(scrapy.Item):
+    p_ID = scrapy.Field()
+    c_ID = scrapy.Field()
+    Title = scrapy.Field()
+    Author = scrapy.Field()
+    Paper = scrapy.Field()

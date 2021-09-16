@@ -18,7 +18,7 @@ class EntitymatchingPipeline:
             "localhost",
             27017
         )
-        self.db = self.conn["em_test"]
+        self.db = self.conn["simonini4"]
 
     def process_item(self, item, spider):
         collection = self.db[type(item).__name__.lower()]

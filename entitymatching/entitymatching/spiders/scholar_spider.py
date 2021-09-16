@@ -3,19 +3,22 @@ from ..get_bibtex_link import Bibtex
 from ..items import MainItem
 from ..items import PublicationItem
 from ..items import BibTeXItem
+from ..items import CitationItem
 
 
 class ScholarSpider(scrapy.Spider):
     name = "scholar_spider"
     page_size = 20
     start = 0
-    urls = "https://scholar.google.it/citations?hl=it&user=GlGtfn8AAAAJ"
+    start2 = 10
+    urls = "https://scholar.google.it/citations?user=qKNoouoAAAAJ&hl=it"
     a_id = hash(urls)
     start_urls = [urls + "&cstart={}&pagesize={}".format(start, page_size)]
     bib_link = []
     page2_links = []
     hash_list = []
     citation_dict = {}
+    go_bibtex = False
 
     i = 0
 
@@ -55,24 +58,32 @@ class ScholarSpider(scrapy.Spider):
             except IndexError:  # When an index error occurs it means that the web page has no more papers.
                 # It's time to scrape BibTeX
 
-                bib_link_total = []
-                for (citation, paper_id) in ScholarSpider.page2_links:
-                    if citation == "":
-                        continue
-                    citation_bib_link = Bibtex(citation)  # Create object that uses Selenium
-                    c_list = citation_bib_link.get_all_bibtex_links()
-                    bib_link_total.append(c_list)
+                if ScholarSpider.go_bibtex:
+                    bib_link_total = []
+                    for (citation, paper_id) in ScholarSpider.page2_links:
+                        if citation == "":
+                            continue
+                        citation_bib_link = Bibtex(citation)  # Create object that uses Selenium
+                        c_list = citation_bib_link.get_all_bibtex_links()
+                        bib_link_total.append(c_list)
 
-                    for url in c_list:
-                        ScholarSpider.citation_dict[url] = paper_id
-                        # Could paper id be a list -> abbiamo verificato che anche se bibtex uguale per id
-                        # gli url sono diversi
+                        for url in c_list:
+                            ScholarSpider.citation_dict[url] = paper_id
+                            # Could paper id be a list -> abbiamo verificato che anche se bibtex uguale per id
+                            # gli url sono diversi
 
-                for lin in bib_link_total:
-                    for url in lin:
-                        yield scrapy.Request(url, callback=self.parse3,
-                                             meta={'id': ScholarSpider.citation_dict.get(url)})
-                    ScholarSpider.i = ScholarSpider.i + 1
+                    for lin in bib_link_total:
+                        for url in lin:
+                            yield scrapy.Request(url, callback=self.parse3,
+                                                 meta={'id': ScholarSpider.citation_dict.get(url)})
+                        ScholarSpider.i = ScholarSpider.i + 1
+                else:
+                    for (citation, paper_id) in ScholarSpider.page2_links:
+                        if citation == "":
+                            continue
+                        yield scrapy.Request(citation, callback=self.parse4,
+                                             meta={'id': paper_id})
+
             try:
                 paper_journal = paper.css("div.gs_gray::text").extract()[1]
             except IndexError:
@@ -106,3 +117,21 @@ class ScholarSpider(scrapy.Spider):
         item["p_ID"] = response.meta.get('id')
         item["Type"] = response.text
         yield item
+
+    def parse4(self, response):
+        for paper in response.css('div.gs_ri'):
+            item = CitationItem()
+            item["p_ID"] = response.meta.get('id')
+            item["Title"] = paper.css('h3.gs_rt a::text').extract_first()
+            item["c_ID"] = hash(paper.css('h3.gs_rt a::text').extract_first())
+            try:
+                item["Author"] = paper.css('div.gs_a a::text').extract()
+            except:
+                item["Author"] = ""
+            item["Paper"] = paper.css('div.gs_a::text').extract()
+            yield item
+
+            next_page = response.css('a.gs_nma::attr(href)').extract()[1]
+            if next_page is not None:
+                next_page = response.urljoin(next_page)
+                yield scrapy.Request(next_page, callback=self.parse4)
