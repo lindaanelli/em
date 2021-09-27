@@ -152,6 +152,6 @@ for author in authors:
 
 
 final_db = conn.final_simonini3
-collection = final_db["Scholar Author 1"]
+collection = final_db["Simonini"]
 
 collection.insert_one(final_author)
